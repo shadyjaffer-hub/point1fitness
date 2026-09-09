@@ -8,8 +8,12 @@
 - Public marketing pages should also work as a standard responsive website (not just inside the wrapped app)
 
 ## Tech Stack
-- **Frontend framework:** TBD (React / Vue / other)
-- **Styling:** TBD
+- **Frontend framework:** TBD (React / Vue / other) — design prototype currently built in static HTML/CSS
+- **Styling:** Design direction established (see `/design/mockup.html`):
+  - Dark theme — bg `#141312`, raised surfaces `#1c1a18`/`#211f1c`, text `#f6f3ee`
+  - Brand accent: orange `#f2711f` (with darker variant `#c65102`), matching the Point 1 logo
+  - Status colors: green `#4ac47a` (complete/success), amber `#e0a736` (in-progress)
+  - Typography: **Barlow Condensed** (display/headings) + **Barlow** (body), via Google Fonts
 - **Backend:** TBD (needed for: auth, challenge/progress data, admin content management, leads storage)
 - **Database:** TBD
 - **Video hosting:** TBD (self-hosted vs. YouTube/Vimeo embeds for movement demo videos)
@@ -49,7 +53,15 @@
 |---|---|---|
 | — | — | — |
 
+## Design Reference
+Full design direction and screen mockups: `/design/mockup.html`. Covers foundations (color/type tokens), public homepage, and member + coach/admin screen flows:
+- **Public:** Hero & CTA, Challenge list (card gallery), Log in
+- **Member:** Today, Day detail, Workout overview, Video & movement, Workout complete, Today's meals, Meal breakdown, Daily check-in, Progress, Achievements, Profile
+- **Coach/admin:** Customers, Challenges, Workouts, Nutrition, Leads
+
+**Note:** the public Challenge list is designed as a browsable card gallery for visitors to pick a challenge before logging in — suggests multiple challenges are meant to be offered/selectable, though this doesn't by itself confirm whether one customer can be enrolled in more than one simultaneously (still open, see below).
+
 ## Open Technical Questions
-- Multi-challenge support per customer (impacts data model)
+- Multi-challenge support per customer (impacts data model) — design leans toward challenges being browsable/selectable, but simultaneous enrollment is still unconfirmed
 - Loyalty mechanic persistence across challenges (impacts data model)
 - Payment/subscription layer (impacts auth + backend scope significantly if added)
