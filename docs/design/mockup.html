@@ -1,0 +1,1697 @@
+<title>Point 1 Design Direction</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#141312;
+    --bg-raise:#1c1a18;
+    --card:#211f1c;
+    --card-2:#28241f;
+    --line:#3a352e;
+    --fg:#f6f3ee;
+    --fg-dim:#a89e91;
+    --muted:#7c7266;
+    --orange:#f2711f;
+    --orange-2:#c65102;
+    --orange-soft:#f2711f22;
+    --green:#4ac47a;
+    --amber:#e0a736;
+    --shadow: 0 20px 50px -20px rgba(0,0,0,.6);
+    --font-display:'Barlow Condensed',ui-sans-serif,system-ui,sans-serif;
+    --font-body:'Barlow',ui-sans-serif,system-ui,sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    background-image:
+      radial-gradient(circle at 12% -8%, #f2711f14, transparent 45%),
+      radial-gradient(circle at 88% 0%, #f2711f0d, transparent 40%);
+    color:var(--fg);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:var(--font-display); text-wrap:balance; letter-spacing:.01em;}
+  .num{font-variant-numeric:tabular-nums;}
+  ::selection{background:var(--orange); color:#141312;}
+  a{color:inherit;}
+  img{max-width:100%;}
+
+  /* ---------- shell ---------- */
+  .wrap{max-width:1240px; margin:0 auto; padding:0 28px;}
+
+  header.masthead{
+    padding:72px 28px 56px;
+    border-bottom:1px solid var(--line);
+  }
+  .brandmark{display:flex; align-items:center; gap:14px; margin-bottom:44px;}
+  .brandmark .box{
+    width:34px; height:34px; border-radius:7px;
+    background:linear-gradient(155deg, var(--orange), var(--orange-2));
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:800; font-size:20px; color:#141312;
+  }
+  .brandmark .wordmark{font-family:var(--font-display); font-weight:700; font-size:18px; letter-spacing:.14em; text-transform:uppercase;}
+  .brandmark .wordmark span{color:var(--fg-dim); font-weight:500; letter-spacing:.28em; font-size:11px; display:block; margin-top:2px;}
+
+  .eyebrow{
+    font-family:var(--font-body); font-weight:600; font-size:12px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--orange); margin:0 0 18px;
+  }
+  header.masthead h1{
+    font-size:clamp(40px,6vw,74px); line-height:.98; font-weight:800; margin:0 0 22px; max-width:15ch;
+  }
+  header.masthead h1 em{font-style:normal; color:var(--orange);}
+  header.masthead .lede{
+    font-size:18px; line-height:1.6; color:var(--fg-dim); max-width:62ch; margin:0 0 36px;
+  }
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px 28px; font-size:13px; color:var(--muted);}
+  .meta-row b{color:var(--fg-dim); font-weight:600;}
+
+  /* ---------- section scaffolding ---------- */
+  section{padding:64px 28px;}
+  section + section{border-top:1px solid var(--line);}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:24px; margin-bottom:36px; flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(28px,3.4vw,38px); font-weight:700; margin:0;}
+  .section-head p{margin:6px 0 0; color:var(--fg-dim); max-width:56ch; font-size:15px;}
+
+  /* ---------- token strip ---------- */
+  .tokens{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .swatch{background:var(--card); padding:22px 20px;}
+  .swatch .chip{height:46px; border-radius:9px; margin-bottom:14px; border:1px solid #ffffff14;}
+  .swatch .name{font-weight:600; font-size:13.5px;}
+  .swatch .hex{font-size:12px; color:var(--muted); font-family:var(--font-body); margin-top:2px;}
+  .swatch .role{font-size:11.5px; color:var(--fg-dim); margin-top:8px; line-height:1.5;}
+
+  .type-row{display:grid; grid-template-columns:1.1fr 1fr; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-top:20px;}
+  .type-cell{background:var(--card); padding:30px 28px;}
+  .type-cell .label{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); font-weight:600; margin-bottom:14px;}
+  .type-cell .sample-d{font-family:var(--font-display); font-weight:700; font-size:40px; line-height:1.02;}
+  .type-cell .sample-b{font-family:var(--font-body); font-size:15.5px; color:var(--fg-dim); margin-top:14px; line-height:1.6; max-width:40ch;}
+  @media (max-width:760px){.type-row{grid-template-columns:1fr;}}
+
+  /* ---------- phone gallery ---------- */
+  .gallery-scroll{
+    display:flex; gap:26px; overflow-x:auto; padding:10px 4px 26px;
+    scroll-snap-type:x proximity;
+  }
+  .gallery-scroll::-webkit-scrollbar{height:8px;}
+  .gallery-scroll::-webkit-scrollbar-thumb{background:var(--line); border-radius:10px;}
+
+  .phone-slot{scroll-snap-align:start; flex:0 0 auto; width:286px;}
+  .phone-slot .caption{margin-top:16px;}
+  .phone-slot .caption .tag{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--orange); font-weight:600;}
+  .phone-slot .caption h3{font-size:19px; margin:6px 0 6px; font-weight:600;}
+  .phone-slot .caption p{font-size:13px; color:var(--fg-dim); line-height:1.55; margin:0;}
+
+  .device{
+    width:286px; height:584px; border-radius:36px; background:#0c0b0a;
+    border:1px solid #000; padding:12px; box-shadow:var(--shadow), inset 0 0 0 1px #ffffff0d;
+    position:relative;
+  }
+  .device .notch{
+    position:absolute; top:12px; left:50%; transform:translateX(-50%);
+    width:110px; height:22px; background:#0c0b0a; border-radius:0 0 14px 14px; z-index:5;
+  }
+  .screen{
+    width:100%; height:100%; border-radius:26px; overflow:hidden; position:relative;
+    background:var(--bg-raise); display:flex; flex-direction:column;
+  }
+  .statusbar{height:34px; flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; padding:0 18px; font-size:11px; font-weight:600; color:var(--fg-dim);}
+  .screen-body{flex:1 1 auto; overflow:hidden; padding:0 16px 12px; display:flex; flex-direction:column; gap:12px;}
+  .tabbar{flex:0 0 auto; display:flex; justify-content:space-around; padding:9px 6px 12px; border-top:1px solid var(--line); background:var(--card);}
+  .tabbar .tab{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:9px; color:var(--muted); font-weight:600;}
+  .tabbar .tab.active{color:var(--orange);}
+  .tabbar .dot{width:18px; height:18px; border-radius:6px; background:var(--line);}
+  .tabbar .tab.active .dot{background:var(--orange); box-shadow:0 0 0 4px var(--orange-soft);}
+
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:700; letter-spacing:.04em; padding:5px 10px; border-radius:999px;}
+  .pill.orange{background:var(--orange-soft); color:var(--orange);}
+  .pill.green{background:#4ac47a22; color:var(--green);}
+  .pill.muted{background:#ffffff0f; color:var(--fg-dim);}
+  .pill.lock{background:#ffffff0a; color:var(--muted);}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .card.raise{background:var(--card-2);}
+
+  /* landing screen */
+  .s-hero{padding-top:6px;}
+  .s-hero .brandline{display:flex; align-items:center; gap:8px; margin-bottom:14px;}
+  .s-hero .brandline .box{width:20px; height:20px; border-radius:5px; background:linear-gradient(155deg,var(--orange),var(--orange-2)); font-family:var(--font-display); font-weight:800; font-size:12px; display:flex; align-items:center; justify-content:center; color:#141312;}
+  .s-hero .brandline .w{font-family:var(--font-display); font-weight:700; font-size:12px; letter-spacing:.12em;}
+  .s-hero h4{font-family:var(--font-display); font-weight:800; font-size:29px; line-height:1.02; margin:2px 0 10px;}
+  .s-hero h4 em{font-style:normal; color:var(--orange);}
+  .s-hero p{font-size:12.5px; color:var(--fg-dim); line-height:1.5; margin:0 0 14px;}
+  .btn{display:flex; align-items:center; justify-content:center; gap:6px; height:42px; border-radius:10px; font-weight:700; font-size:13px; font-family:var(--font-body);}
+  .btn.primary{background:linear-gradient(155deg,var(--orange),var(--orange-2)); color:#141312;}
+  .btn.ghost{border:1px solid var(--line); color:var(--fg);}
+  .imgblock{height:120px; border-radius:12px; background:
+      linear-gradient(160deg,#2a221a,#1a1815 60%),
+      repeating-linear-gradient(120deg, #f2711f14 0 2px, transparent 2px 22px);
+    border:1px solid var(--line); display:flex; align-items:flex-end; padding:10px;}
+  .imgblock .tag{font-size:10px;}
+
+  /* dashboard/today screen */
+  .greet{font-size:11px; color:var(--fg-dim);}
+  .greet b{color:var(--fg); font-weight:700;}
+  .ring-row{display:flex; align-items:center; gap:14px;}
+  .ring{width:64px; height:64px; border-radius:50%; flex:0 0 auto; display:flex; align-items:center; justify-content:center; position:relative;
+    background:conic-gradient(var(--orange) 0turn 0.4turn, var(--line) 0turn); }
+  .ring::after{content:""; position:absolute; inset:6px; background:var(--card); border-radius:50%;}
+  .ring .val{position:relative; z-index:2; font-family:var(--font-display); font-weight:700; font-size:15px;}
+  .ring .sub{position:relative; z-index:2; font-size:8px; color:var(--fg-dim); margin-top:-2px;}
+  .ring-txt{flex:1;}
+  .ring-txt .d{font-family:var(--font-display); font-weight:700; font-size:20px;}
+  .ring-txt .p{font-size:11.5px; color:var(--fg-dim); margin-top:2px;}
+  .checklist{display:flex; flex-direction:column; gap:8px;}
+  .check-item{display:flex; align-items:center; justify-content:space-between; padding:10px 12px;}
+  .check-item .l{display:flex; align-items:center; gap:10px; font-size:12.5px; font-weight:600;}
+  .check-item .mark{width:20px; height:20px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800;}
+  .check-item .mark.done{background:var(--green); color:#0e1f14;}
+  .check-item .mark.pend{background:transparent; border:1.5px solid var(--line);}
+  .streak{display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; color:var(--amber);}
+
+  /* day detail screen */
+  .daytab{display:flex; gap:8px; overflow:hidden;}
+  .daychip{flex:0 0 auto; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; font-family:var(--font-display);}
+  .daychip.past{background:var(--green); color:#0e1f14;}
+  .daychip.today{background:var(--orange); color:#141312; box-shadow:0 0 0 3px var(--orange-soft);}
+  .daychip.locked{background:transparent; border:1px dashed var(--line); color:var(--muted);}
+  .taskcard{padding:13px;}
+  .taskcard .top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;}
+  .taskcard .ttl{font-weight:700; font-size:13px;}
+  .taskcard .meta{font-size:11px; color:var(--fg-dim); margin-top:2px;}
+  .taskcard .icon-box{width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; background:var(--orange-soft);}
+
+  /* progress screen */
+  .bigstat{display:flex; align-items:baseline; gap:8px;}
+  .bigstat .n{font-family:var(--font-display); font-weight:800; font-size:44px; line-height:1;}
+  .bigstat .u{font-size:12px; color:var(--fg-dim);}
+  .bar{height:8px; border-radius:99px; background:var(--line); overflow:hidden;}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--orange-2),var(--orange));}
+  .statgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .statgrid .cell{padding:10px;}
+  .statgrid .cell .n{font-family:var(--font-display); font-weight:700; font-size:19px;}
+  .statgrid .cell .l{font-size:10px; color:var(--fg-dim); margin-top:2px;}
+  .calgrid{display:grid; grid-template-columns:repeat(10,1fr); gap:4px;}
+  .calgrid i{aspect-ratio:1; border-radius:4px; background:var(--line); display:block;}
+  .calgrid i.done{background:var(--green);}
+  .calgrid i.today{background:var(--orange);}
+
+  /* achievements */
+  .achgrid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .ach{padding:10px 8px; text-align:center;}
+  .ach .medal{width:32px; height:32px; margin:0 auto 6px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; font-family:var(--font-display);}
+  .ach.unlocked .medal{background:linear-gradient(155deg,var(--orange),var(--orange-2)); color:#141312;}
+  .ach.locked .medal{background:var(--line); color:var(--muted);}
+  .ach.locked{opacity:.55;}
+  .ach .t{font-size:11px; font-weight:700;}
+  .ach .d{font-size:9.5px; color:var(--muted); margin-top:2px; line-height:1.3;}
+
+  /* login */
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field label{font-size:10.5px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.06em;}
+  .field .box{height:38px; border-radius:9px; background:var(--card-2); border:1px solid var(--line);}
+
+  /* ---------- coach panel ---------- */
+  .coach-panel{
+    background:var(--card); border:1px solid var(--line); border-radius:20px; padding:0; overflow:hidden; box-shadow:var(--shadow);
+  }
+  .coach-topbar{display:flex; align-items:center; justify-content:space-between; padding:20px 26px; border-bottom:1px solid var(--line); background:var(--bg-raise);}
+  .coach-topbar .brandline{display:flex; align-items:center; gap:10px;}
+  .coach-topbar .box{width:26px; height:26px; border-radius:6px; background:linear-gradient(155deg,var(--orange),var(--orange-2)); font-family:var(--font-display); font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; color:#141312;}
+  .coach-topbar .w{font-family:var(--font-display); font-weight:700; letter-spacing:.1em; font-size:14px;}
+  .coach-nav{display:flex; gap:20px; font-size:12.5px; color:var(--fg-dim); font-weight:600;}
+  .coach-nav .on{color:var(--fg);}
+  .coach-body{display:grid; grid-template-columns:1.35fr 1fr; gap:1px; background:var(--line);}
+  .coach-col{background:var(--card); padding:24px 26px;}
+  .coach-kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:20px;}
+  .kpi{background:var(--card-2); padding:14px 16px;}
+  .kpi .n{font-family:var(--font-display); font-weight:800; font-size:26px;}
+  .kpi .l{font-size:11px; color:var(--fg-dim); margin-top:2px;}
+  .attn-row{display:flex; align-items:center; justify-content:space-between; padding:13px 14px; border-radius:11px; background:var(--card-2); border:1px solid var(--line); margin-bottom:8px;}
+  .attn-row .who{display:flex; align-items:center; gap:11px;}
+  .avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(155deg,#3a352e,#211f1c); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:var(--fg-dim);}
+  .attn-row .name{font-size:13px; font-weight:700;}
+  .attn-row .why{font-size:11px; color:var(--fg-dim);}
+  .side-list .item{display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--line); font-size:12.5px;}
+  .side-list .item:last-child{border-bottom:none;}
+  .side-list .item .l{color:var(--fg-dim);}
+  .side-list .item .r{font-weight:700; font-family:var(--font-display);}
+  @media (max-width:820px){.coach-body{grid-template-columns:1fr;}}
+
+  .coach-table{background:var(--card); padding:24px 26px; border-top:1px solid var(--line);}
+  .ctable{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .ctable th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:600; padding:0 12px 10px; border-bottom:1px solid var(--line);}
+  .ctable td{padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  .ctable tr:last-child td{border-bottom:none;}
+  .ctable .who{display:flex; align-items:center; gap:10px;}
+  .ctable .mini-bar{width:88px; height:6px; border-radius:99px; background:var(--line); overflow:hidden;}
+  .ctable .mini-bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--orange-2),var(--orange));}
+  .status-dot{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600;}
+  .status-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--muted);}
+  .status-dot.on::before{background:var(--green);}
+  .status-dot.risk::before{background:var(--orange);}
+
+  .challenge-strip{display:flex; gap:10px; margin-bottom:22px; overflow-x:auto;}
+  .challenge-mini{flex:0 0 auto; width:190px; background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:13px;}
+  .challenge-mini .top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .challenge-mini .t{font-weight:700; font-size:12.5px;}
+  .challenge-mini .m{font-size:10.5px; color:var(--fg-dim); margin-top:2px;}
+  .challenge-mini .stat{display:flex; justify-content:space-between; margin-top:10px; font-size:11px; color:var(--fg-dim);}
+  .challenge-mini .stat b{color:var(--fg); font-family:var(--font-display); font-weight:700;}
+
+  .activity-feed{display:flex; flex-direction:column;}
+  .activity-row{display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:12px;}
+  .activity-row:last-child{border-bottom:none;}
+  .activity-row .ic{width:26px; height:26px; border-radius:7px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; background:var(--card-2);}
+  .activity-row .tx{flex:1; min-width:0;}
+  .activity-row .tx b{font-weight:700;}
+  .activity-row .time{flex:0 0 auto; font-size:10.5px; color:var(--muted);}
+
+  .leads-panel{background:var(--card); padding:24px 26px; border-top:1px solid var(--line);}
+
+  /* ---------- coach sub-pages ---------- */
+  .coach-page{margin-top:26px;}
+  .coach-page-head{display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:16px; flex-wrap:wrap;}
+  .coach-page-head h3{font-family:var(--font-display); font-weight:700; font-size:20px; margin:0;}
+  .coach-page-head p{margin:2px 0 0; font-size:12.5px; color:var(--fg-dim);}
+
+  .filter-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:18px;}
+  .search-box{display:flex; align-items:center; gap:8px; padding:8px 12px; border-radius:9px; background:var(--card-2); border:1px solid var(--line); font-size:12px; color:var(--muted); min-width:180px;}
+  .filter-chip{display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:9px; background:var(--card-2); border:1px solid var(--line); font-size:11.5px; color:var(--fg-dim); font-weight:600; cursor:pointer;}
+  .filter-chip.active{background:var(--orange-soft); color:var(--orange); border-color:transparent;}
+
+  .cc-cols{display:grid; grid-template-columns:1.4fr 1fr; gap:20px; align-items:start;}
+  @media (max-width:900px){.cc-cols{grid-template-columns:1fr;}}
+
+  .daybuilder-grid{display:grid; grid-template-columns:repeat(10,1fr); gap:6px;}
+  .daybuilder-cell{aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; font-family:var(--font-display); background:var(--card-2); border:1px solid var(--line); color:var(--fg-dim);}
+  .daybuilder-cell.set{background:var(--orange-soft); color:var(--orange); border-color:transparent;}
+  .daybuilder-cell.today{background:var(--orange); color:#141312; border-color:transparent;}
+  .daybuilder-cell.empty{color:var(--muted); border-style:dashed;}
+  .db-legend{display:flex; gap:16px; margin-top:12px; font-size:11px; color:var(--fg-dim);}
+  .db-legend span{display:inline-flex; align-items:center; gap:6px;}
+  .db-legend i{width:10px; height:10px; border-radius:3px; display:inline-block;}
+
+  .day-editor{background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:14px;}
+  .day-editor .dt{font-weight:700; font-size:13px; margin-bottom:10px;}
+  .de-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:12px;}
+  .de-row:last-of-type{border-bottom:none;}
+  .de-row .l{color:var(--fg-dim); display:flex; align-items:center; gap:8px;}
+
+  .lib-card{background:var(--card-2); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; align-items:center; gap:12px;}
+  .lib-card .ic{width:38px; height:38px; border-radius:10px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; background:var(--orange-soft);}
+  .lib-card .info{flex:1; min-width:0;}
+  .lib-card .t{font-weight:700; font-size:12.5px;}
+  .lib-card .m{font-size:11px; color:var(--fg-dim); margin-top:1px;}
+  .lib-list{display:flex; flex-direction:column; gap:8px;}
+
+  .detail-panel{background:var(--card-2); border:1px solid var(--line); border-radius:14px; padding:18px;}
+  .detail-panel .dp-head{display:flex; gap:12px; align-items:center; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--line);}
+  .timeline{display:flex; flex-direction:column; gap:0;}
+  .timeline .tl-row{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:11.5px;}
+  .timeline .tl-row:last-child{border-bottom:none;}
+  .timeline .tl-dot{width:7px; height:7px; border-radius:50%; background:var(--muted); margin-top:5px; flex:0 0 auto;}
+  .timeline .tl-dot.on{background:var(--green);}
+  .timeline .tl-dot.miss{background:var(--orange);}
+  .timeline .tl-t{color:var(--fg-dim); flex:0 0 auto; width:52px;}
+
+  /* ---------- workout overview ---------- */
+  .movelist{display:flex; flex-direction:column; gap:7px;}
+  .move-row{display:flex; align-items:center; gap:10px; padding:9px 10px;}
+  .move-row .n{width:20px; height:20px; border-radius:6px; flex:0 0 auto; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; font-family:var(--font-display);}
+  .move-row.done .n{background:var(--green); color:#0e1f14;}
+  .move-row.next .n{background:var(--orange); color:#141312;}
+  .move-row.up .n{background:var(--line); color:var(--fg-dim);}
+  .move-row .mv{flex:1; min-width:0;}
+  .move-row .mv .t{font-size:12px; font-weight:700;}
+  .move-row .mv .s{font-size:10.5px; color:var(--fg-dim);}
+
+  /* ---------- macros ---------- */
+  .macro-row{display:flex; gap:8px;}
+  .macro-chip{flex:1; text-align:center; padding:8px 4px; border-radius:9px;}
+  .macro-chip .v{font-family:var(--font-display); font-weight:700; font-size:15px;}
+  .macro-chip .l{font-size:9px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.05em; margin-top:1px;}
+  .macro-chip.protein{background:#f2711f1c;} .macro-chip.protein .v{color:var(--orange);}
+  .macro-chip.carb{background:#e0a7361c;} .macro-chip.carb .v{color:var(--amber);}
+  .macro-chip.fat{background:#4ac47a1c;} .macro-chip.fat .v{color:var(--green);}
+  .macro-mini{display:flex; gap:4px; margin-top:6px;}
+  .macro-mini span{font-size:9px; color:var(--fg-dim); display:flex; align-items:center; gap:3px;}
+  .macro-mini i{width:6px; height:6px; border-radius:50%; display:inline-block;}
+  .macro-bar{display:flex; height:7px; border-radius:99px; overflow:hidden; background:var(--line);}
+  .macro-bar b{display:block; height:100%;}
+
+  .kcal-ring{width:96px; height:96px; border-radius:50%; flex:0 0 auto; position:relative; display:flex; align-items:center; justify-content:center;}
+  .kcal-ring .val{position:relative; z-index:2; text-align:center;}
+  .kcal-ring .val .n{font-family:var(--font-display); font-weight:800; font-size:22px; display:block; line-height:1;}
+  .kcal-ring .val .u{font-size:8.5px; color:var(--fg-dim);}
+  .kcal-ring::after{content:""; position:absolute; inset:8px; background:var(--card); border-radius:50%;}
+
+  .ingredient{display:flex; justify-content:space-between; font-size:11.5px; padding:7px 0; border-bottom:1px solid var(--line);}
+  .ingredient:last-child{border-bottom:none;}
+  .ingredient .l{color:var(--fg-dim);}
+
+  /* ---------- check-in ---------- */
+  .checkin-row{display:flex; align-items:center; justify-content:space-between; padding:11px 12px;}
+  .checkin-row .l{display:flex; align-items:center; gap:9px; font-size:12px; font-weight:600;}
+  .toggle{width:34px; height:20px; border-radius:99px; background:var(--line); position:relative; flex:0 0 auto;}
+  .toggle::after{content:""; position:absolute; top:3px; left:3px; width:14px; height:14px; border-radius:50%; background:var(--fg-dim);}
+  .toggle.on{background:var(--orange-soft);}
+  .toggle.on::after{left:17px; background:var(--orange);}
+
+  /* ---------- full flow ---------- */
+  .flow-group{margin-bottom:26px;}
+  .flow-group:last-child{margin-bottom:0;}
+  .flow-group .fg-label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--orange); margin-bottom:12px;}
+  .flow-row{display:flex; align-items:center; flex-wrap:wrap; gap:0;}
+  .flow-step{display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 14px; min-width:150px;}
+  .flow-step .fn{font-family:var(--font-display); font-weight:800; font-size:14px; color:var(--orange); width:20px;}
+  .flow-step .ft{font-size:12.5px; font-weight:700;}
+  .flow-step .fd{font-size:10.5px; color:var(--fg-dim); margin-top:1px;}
+  .flow-arrow{display:flex; align-items:center; justify-content:center; width:34px; flex:0 0 auto; color:var(--muted);}
+  .flow-arrow.down{width:100%; height:26px; transform:rotate(90deg) scale(.9);}
+  @media (max-width:900px){ .flow-arrow:not(.down){display:none;} .flow-row{flex-direction:column; align-items:stretch;} .flow-step{width:100%;} }
+
+  /* ---------- principles ---------- */
+  .principles{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .principle{background:var(--card); padding:24px 22px;}
+  .principle .k{font-family:var(--font-display); font-size:34px; font-weight:800; color:var(--orange); line-height:1;}
+  .principle h4{margin:12px 0 6px; font-size:15.5px;}
+  .principle p{margin:0; font-size:13px; color:var(--fg-dim); line-height:1.55;}
+
+  footer{padding:40px 28px 60px; text-align:center; color:var(--muted); font-size:12.5px;}
+
+  /* ---------- logo lockup ---------- */
+  .logo-word{font-family:var(--font-display); font-weight:800; text-transform:uppercase; letter-spacing:-.01em; color:#fdfbf8;}
+  .logo-word .digit{color:var(--orange);}
+  .logo-sub{color:var(--orange); text-transform:uppercase;}
+  .brandmark2{display:flex; flex-direction:column;}
+  .brandmark2 .logo-word{font-size:22px; line-height:1;}
+  .brandmark2 .logo-sub{font-size:9px; letter-spacing:.38em; margin-top:3px; font-weight:600;}
+
+  /* ---------- extended home page ---------- */
+  .device.tall{height:auto; min-height:0;}
+  .device.tall .screen{height:auto; border-radius:26px;}
+  .device.tall .screen-body{overflow:visible; padding:0 0 0; gap:0;}
+  .home-sec{padding:22px 18px;}
+  .home-sec + .home-sec{border-top:1px solid var(--line);}
+  .home-label{font-size:9.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--orange); margin-bottom:10px;}
+  .home-h{font-family:var(--font-display); font-weight:800; font-size:20px; line-height:1.05; margin:0 0 8px;}
+  .home-p{font-size:11.5px; color:var(--fg-dim); line-height:1.6; margin:0;}
+  .chip-row{display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;}
+  .why-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;}
+  .why-item{display:flex; align-items:center; gap:8px; padding:10px; background:var(--card); border:1px solid var(--line); border-radius:10px;}
+  .why-item .t{font-size:11px; font-weight:700;}
+  .ba-row{display:flex; gap:8px; margin-top:12px;}
+  .ba-row .photo{flex:1; height:120px;}
+  .team-row{display:flex; gap:10px; margin-top:12px; overflow-x:auto;}
+  .team-card{flex:0 0 auto; width:108px; text-align:center;}
+  .team-card .photo{height:108px; width:108px; border-radius:12px;}
+  .team-card .n{font-size:11.5px; font-weight:700; margin-top:8px;}
+  .team-card .r{font-size:9.5px; color:var(--fg-dim);}
+  .quote-card{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-top:12px;}
+  .quote-card p{font-size:12px; color:var(--fg); line-height:1.6; margin:0 0 10px; font-style:italic;}
+  .quote-card .who{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--fg-dim);}
+  .final-cta{text-align:center; padding:32px 20px; background:radial-gradient(120% 140% at 50% 0%, #f2711f26, transparent 60%);}
+  .final-cta h3{font-family:var(--font-display); font-weight:800; font-size:24px; margin:0 0 8px;}
+  .final-cta p{font-size:12px; color:var(--fg-dim); margin:0 0 16px;}
+  .home-footer{padding:22px 18px 26px; background:var(--bg-raise);}
+  .home-footer .flinks{display:flex; flex-wrap:wrap; gap:8px 16px; font-size:11px; color:var(--fg-dim); margin:14px 0;}
+  .home-footer .fbottom{display:flex; justify-content:space-between; align-items:center; font-size:10px; color:var(--muted); padding-top:14px; border-top:1px solid var(--line); margin-top:6px;}
+
+  /* ---------- icons ---------- */
+  .icon{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto;}
+  .icon.lg{width:20px; height:20px;}
+
+  /* ---------- photo / texture blocks ---------- */
+  .photo{
+    position:relative; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 30% 0%, #3a2414 0%, #1a1512 55%, #100e0c 100%);
+  }
+  .photo::before{
+    content:""; position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, transparent 40%, #100e0cd9 100%),
+      repeating-radial-gradient(circle at 20% 30%, #ffffff08 0 1px, transparent 1px 3px);
+  }
+  .photo::after{
+    content:""; position:absolute; left:-10%; right:-10%; bottom:-30%; height:140%;
+    background:radial-gradient(closest-side, #f2711f55, transparent 70%);
+    filter:blur(2px);
+  }
+  .photo .figure{
+    position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+    width:64%; height:88%;
+    background:linear-gradient(180deg, transparent, #0c0b0a 92%), linear-gradient(200deg,#2a1f18,#0f0d0c 70%);
+    clip-path:polygon(38% 0%, 62% 0%, 70% 10%, 78% 30%, 74% 45%, 82% 55%, 78% 100%, 22% 100%, 18% 55%, 26% 45%, 22% 30%, 30% 10%);
+    opacity:.85;
+  }
+  .photo .label{position:relative; z-index:2;}
+
+  @keyframes riseIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+  .rise{animation:riseIn .7s cubic-bezier(.2,.7,.2,1) both;}
+  .rise.d1{animation-delay:.05s;} .rise.d2{animation-delay:.14s;} .rise.d3{animation-delay:.22s;}
+  @media (prefers-reduced-motion:reduce){ .rise{animation:none;} }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-dumbbell" viewBox="0 0 24 24"><path d="M6.5 6.5 17.5 17.5M4 9l3-3M18 21l3-3M2 11l3 3M18 6l3 3M9 2l3 3"/></symbol>
+  <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12 7c-2.8 0-5 2.4-5 5.8 0 4 2.6 8.2 5 8.2s5-4.2 5-8.2C17 9.4 14.8 7 12 7Z"/><path d="M12 7c0-2 1.2-3.5 3-4"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2s3 3.5 3 7a3 3 0 0 1-6 0c0 0-3 2.5-3 6.5A6 6 0 0 0 12 22a6 6 0 0 0 6-6.5c0-4.5-3-6.5-3-6.5s1-2 1-4.5c0-1-1.5-1.5-4-2.5Z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l14-8Z"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v6a4 4 0 0 1-8 0Z"/><path d="M8 5H4v2a4 4 0 0 0 4 4M16 5h4v2a4 4 0 0 1-4 4"/><path d="M12 14v3M9 20h6M9 20l.5-3h5l.5 3"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.3 3.1-6 7-6s7 2.7 7 6"/><circle cx="17" cy="9" r="2.4"/><path d="M16 14.2c2.9.5 5 2.5 5 5.8"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6Z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2s6 7 6 12a6 6 0 0 1-12 0c0-5 6-12 6-12Z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+</svg>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brandmark2" style="margin-bottom:44px;">
+      <span class="logo-word" style="font-size:30px;">PO<span class="digit">1</span>NT</span>
+      <span class="logo-sub" style="font-size:11px; letter-spacing:.34em; margin-top:4px;">Fitness Studio</span>
+    </div>
+    <p class="eyebrow rise">Design direction — 30-day challenge platform</p>
+    <h1 class="rise d1">One point of focus.<br><em>Every&nbsp;day,</em> for thirty days.</h1>
+    <p class="lede rise d2">A mobile-first visual system for the Point 1 web app: a public site that turns visitors into challenge members, and a daily-unlock training experience built to answer one question the moment a member opens it — <em>what do I do today?</em></p>
+    <div class="meta-row">
+      <span><b>Palette</b> — charcoal ground, signal orange, streak amber</span>
+      <span><b>Type</b> — Barlow Condensed / Barlow</span>
+      <span><b>Grid</b> — mobile 375px base, coach console at 1024px+</span>
+    </div>
+  </div>
+</header>
+
+<section id="foundations">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Foundations</h2>
+        <p>The logo's block "1" sets the whole system: near-black ground, one hot orange accent, condensed athletic type — used sparingly enough that the orange stays a signal, not a wash.</p>
+      </div>
+    </div>
+
+    <div class="tokens">
+      <div class="swatch"><div class="chip" style="background:#141312;"></div><div class="name">Charcoal ground</div><div class="hex">#141312</div><div class="role">App background. Matches the logo plate — the app should feel like an extension of it, not a lighter reskin.</div></div>
+      <div class="swatch"><div class="chip" style="background:#211f1c;"></div><div class="name">Card</div><div class="hex">#211f1c</div><div class="role">Cards, sheets, nav bars — one step up from ground for depth without a hard border.</div></div>
+      <div class="swatch"><div class="chip" style="background:linear-gradient(155deg,#f2711f,#c65102);"></div><div class="name">Signal orange</div><div class="hex">#f2711f</div><div class="role">CTAs, progress fills, today's day, active tab. The one color that means "act."</div></div>
+      <div class="swatch"><div class="chip" style="background:#4ac47a;"></div><div class="name">Complete green</div><div class="hex">#4ac47a</div><div class="role">Reserved strictly for completion states — done workout, hit macro, unlocked day.</div></div>
+      <div class="swatch"><div class="chip" style="background:#e0a736;"></div><div class="name">Streak amber</div><div class="hex">#e0a736</div><div class="role">Streak counters and momentum callouts — separate from the orange CTA so it never competes with it.</div></div>
+      <div class="swatch"><div class="chip" style="background:#f6f3ee;"></div><div class="name">Warm ivory</div><div class="hex">#f6f3ee</div><div class="role">Primary text. Slightly warm off-white, never pure #fff, so it sits comfortably on the charcoal.</div></div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-cell">
+        <div class="label">Display — Barlow Condensed 700/800</div>
+        <div class="sample-d">DAY 12<span style="color:var(--orange)">/30</span></div>
+        <p class="sample-b">Condensed and upright, the way a scoreboard or a gym singlet sets numbers. Used for day counts, headlines, and stat figures — anywhere the number is the message.</p>
+      </div>
+      <div class="type-cell">
+        <div class="label">Body — Barlow 400/500/600</div>
+        <div class="sample-d" style="font-family:var(--font-body); font-weight:600; font-size:22px;">Full‑body strength, 32 min.</div>
+        <p class="sample-b">Barlow's humanist, slightly squared letterforms stay legible at small sizes on a phone in a gym bag or on a treadmill rack, while still reading as the same athletic family as the headlines.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="home-extended">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Public homepage — full page</h2>
+        <p>The hero card in the gallery below is the fold; this is the whole scroll — every section from the scope doc, mobile-first, in the order a visitor actually meets them.</p>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center;">
+      <div class="device tall" style="width:320px;">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+
+          <div class="home-sec" style="padding-top:6px;">
+            <div class="brandline" style="margin-bottom:16px;"><span class="logo-word" style="font-size:16px;">PO<span class="digit">1</span>NT</span></div>
+            <h4 style="font-family:var(--font-display); font-weight:800; font-size:26px; line-height:1.02; margin:2px 0 10px;">30 days.<br>One <em style="font-style:normal; color:var(--orange);">point</em> of focus.</h4>
+            <p class="home-p">Structured workouts, daily nutrition and a coach watching your streak — built for people who want results, not guesswork.</p>
+            <div class="btn primary" style="margin-top:14px;">Join the Challenge <svg class="icon"><use href="#i-arrow"/></svg></div>
+            <div class="btn ghost" style="margin-top:8px;">See how it works</div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">About Point 1</div>
+            <h4 class="home-h">Coaching built around one thing at a time.</h4>
+            <p class="home-p">Point 1 pairs every member with a coach and a structured program — no guesswork, no scattered advice, one clear focus each day.</p>
+            <div class="chip-row">
+              <span class="pill muted">Certified coaches</span>
+              <span class="pill muted">Structured programs</span>
+              <span class="pill muted">Real accountability</span>
+            </div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">Featured challenge</div>
+            <div class="card" style="padding:0; overflow:hidden;">
+              <div class="photo" style="height:110px; border-radius:0;"><div class="figure"></div></div>
+              <div style="padding:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;"><div class="ttl" style="font-weight:700; font-size:14px;">30-Day Transformation</div><span class="pill orange">Popular</span></div>
+                <p class="home-p" style="margin-top:6px;">Structured workouts, nutrition and daily accountability — start any Monday.</p>
+                <div class="btn primary" style="margin-top:12px; height:38px; font-size:12px;">See the Challenge</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">Transformations</div>
+            <h4 class="home-h">Real members, real 30 days.</h4>
+            <div class="ba-row">
+              <div class="photo"><div class="figure"></div><span class="pill orange label" style="position:absolute; left:8px; bottom:8px;">Sara · Day 30</span></div>
+              <div class="photo"><div class="figure"></div><span class="pill orange label" style="position:absolute; left:8px; bottom:8px;">Karim · Day 30</span></div>
+            </div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">Why Point 1</div>
+            <div class="why-grid">
+              <div class="why-item"><svg class="icon" style="stroke:var(--orange);"><use href="#i-dumbbell"/></svg><span class="t">Coaching</span></div>
+              <div class="why-item"><svg class="icon" style="stroke:var(--orange);"><use href="#i-chart"/></svg><span class="t">Structured plans</span></div>
+              <div class="why-item"><svg class="icon" style="stroke:var(--orange);"><use href="#i-apple"/></svg><span class="t">Nutrition</span></div>
+              <div class="why-item"><svg class="icon" style="stroke:var(--orange);"><use href="#i-bolt"/></svg><span class="t">Accountability</span></div>
+            </div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">Coaches</div>
+            <div class="team-row">
+              <div class="team-card"><div class="photo"><div class="figure"></div></div><div class="n">Youssef Adel</div><div class="r">Head Coach</div></div>
+              <div class="team-card"><div class="photo"><div class="figure"></div></div><div class="n">Nour Hassan</div><div class="r">Nutrition Coach</div></div>
+              <div class="team-card"><div class="photo"><div class="figure"></div></div><div class="n">Omar Said</div><div class="r">Strength Coach</div></div>
+            </div>
+          </div>
+
+          <div class="home-sec">
+            <div class="home-label">Testimonials</div>
+            <div class="quote-card">
+              <p>"Day 1 I could barely finish the warm-up. Day 30 I hit every workout in the plan. Point 1 made it impossible to fall behind."</p>
+              <div class="who"><div class="avatar" style="width:26px; height:26px; font-size:10px;">SR</div>Sara R. — 30-Day Challenge graduate</div>
+            </div>
+          </div>
+
+          <div class="final-cta">
+            <h3>Your next 30 days<br>start on a Monday.</h3>
+            <p>Pick a start date, get matched with a coach, and get your Day 1 the moment you join.</p>
+            <div class="btn primary" style="max-width:220px; margin:0 auto;">Join the Challenge</div>
+          </div>
+
+          <div class="home-footer">
+            <span class="logo-word" style="font-size:15px;">PO<span class="digit">1</span>NT</span>
+            <div class="flinks">
+              <span>About</span><span>Challenges</span><span>Team</span><span>Contact</span><span>Log In</span><span>Privacy</span>
+            </div>
+            <div class="fbottom"><span>© Point 1 Fitness Studio</span><span>IG · FB · TikTok</span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="member">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Member experience</h2>
+        <p>Fourteen screens carrying the full journey: discover the challenge, sign in, land on today, work the day end to end — video, meals, check-in — then watch progress and status build. Locked future content stays visibly present but unreachable — momentum without overwhelm.</p>
+      </div>
+    </div>
+
+    <div class="gallery-scroll">
+
+      <!-- 1. Landing -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body s-hero">
+              <div class="brandline"><span class="logo-word" style="font-size:15px;">PO<span class="digit">1</span>NT</span></div>
+              <h4>30 days.<br>One <em>point</em> of focus.</h4>
+              <p>Structured workouts, daily nutrition and a coach watching your streak — built for people who want results, not guesswork.</p>
+              <div class="btn primary">Join the Challenge <svg class="icon" style="stroke:currentColor;"><use href="#i-arrow"/></svg></div>
+              <div class="btn ghost" style="margin-top:8px;">See how it works</div>
+              <div class="photo" style="height:118px; margin-top:14px;"><div class="figure"></div><span class="pill orange label" style="position:absolute; left:10px; bottom:10px;">Before / After · Sara, Day 30</span></div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent; padding-top:0;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Public · Home</span><h3>Hero &amp; CTA</h3><p>One decision above the fold: join the challenge. Transformation proof sits one scroll away, never buried in navigation.</p></div>
+      </div>
+
+      <!-- 2. Challenge listing -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="greet" style="display:flex; align-items:center; justify-content:space-between;"><span style="font-family:var(--font-display); font-weight:700; font-size:16px; color:var(--fg);">Challenges</span><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-users"/></svg></div>
+              <div class="card" style="padding:0; overflow:hidden;">
+                <div class="photo" style="height:92px; border-radius:0;"><div class="figure"></div></div>
+                <div style="padding:12px;">
+                  <div style="display:flex; justify-content:space-between; align-items:flex-start;"><div class="ttl" style="font-weight:700; font-size:13.5px;">30-Day Transformation</div><span class="pill orange">Popular</span></div>
+                  <p style="margin:5px 0 8px; font-size:11.5px; color:var(--fg-dim); line-height:1.5;">Structured workouts, nutrition &amp; daily accountability.</p>
+                  <div style="display:flex; gap:14px; font-size:10.5px; color:var(--muted);"><span><svg class="icon" style="width:12px;height:12px;"><use href="#i-clock"/></svg> 30 days</span><span><svg class="icon" style="width:12px;height:12px;"><use href="#i-bolt"/></svg> Intermediate</span></div>
+                </div>
+              </div>
+              <div class="card" style="padding:0; overflow:hidden; opacity:.7;">
+                <div class="photo" style="height:60px; border-radius:0;"></div>
+                <div style="padding:10px 12px;">
+                  <div class="ttl" style="font-weight:700; font-size:12.5px;">Lean &amp; Strong — 8 Weeks</div>
+                  <span class="pill muted" style="margin-top:6px;">Coming soon</span>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Public · Challenges</span><h3>Challenge list</h3><p>Cards, not a table — duration, difficulty and status shown at a glance so a visitor can pick without reading paragraphs.</p></div>
+      </div>
+
+      <!-- 3. Login/Register -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body" style="padding-top:18px; gap:16px;">
+              <div class="brandline" style="justify-content:center; margin-bottom:6px;"><span class="logo-word" style="font-size:20px;">PO<span class="digit">1</span>NT</span></div>
+              <h4 style="text-align:center; font-family:var(--font-display); font-weight:800; font-size:22px; margin:0;">Welcome back</h4>
+              <div class="field"><label>Mobile or email</label><div class="box"></div></div>
+              <div class="field"><label>Password</label><div class="box"></div></div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--fg-dim);"><span>Remember me</span><span style="color:var(--orange); font-weight:700;">Forgot password?</span></div>
+              <div class="btn primary">Log In</div>
+              <p style="text-align:center; font-size:11.5px; color:var(--fg-dim); margin:2px 0 0;">New here? <b style="color:var(--fg);">Create an account</b></p>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Auth</span><h3>Log in</h3><p>Two fields, one primary action. Mobile-number-first, since most Point 1 members will sign in from a phone, not a desktop.</p></div>
+      </div>
+
+      <!-- 4. Dashboard / Today -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="greet">Good morning, <b>Ahmed</b></div>
+              <div class="card ring-row">
+                <div class="ring"><span class="val">40%</span><span class="sub">DAY 12</span></div>
+                <div class="ring-txt">
+                  <div class="d num">Day 12 <span style="color:var(--fg-dim); font-size:13px;">/ 30</span></div>
+                  <div class="p">30-Day Transformation Challenge</div>
+                  <div class="streak" style="margin-top:6px;"><svg class="icon" style="stroke:var(--amber);"><use href="#i-flame"/></svg> <span class="num">7</span>-day streak</div>
+                </div>
+              </div>
+              <div class="card">
+                <div style="font-size:11px; color:var(--fg-dim); margin-bottom:8px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;">Today's checklist</div>
+                <div class="checklist">
+                  <div class="check-item card raise"><span class="l"><span class="mark done">✓</span>Workout</span><span class="pill green">Done</span></div>
+                  <div class="check-item card raise"><span class="l"><span class="mark done">✓</span>Nutrition</span><span class="pill green">Done</span></div>
+                  <div class="check-item card raise"><span class="l"><span class="mark pend"></span>Check-in</span><span class="pill orange">Pending</span></div>
+                </div>
+              </div>
+              <div class="btn primary">Continue Today's Challenge</div>
+            </div>
+            <div class="tabbar">
+              <div class="tab active"><span class="dot"></span>Home</div>
+              <div class="tab"><span class="dot"></span>Challenge</div>
+              <div class="tab"><span class="dot"></span>Progress</div>
+              <div class="tab"><span class="dot"></span>Awards</div>
+              <div class="tab"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Dashboard</span><h3>Today</h3><p>Everything answers "what do I do today" before anything else — history and settings are deliberately one tap further away.</p></div>
+      </div>
+
+      <!-- 5. Daily challenge day -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="daytab">
+                <div class="daychip past">10</div><div class="daychip past">11</div><div class="daychip today">12</div><div class="daychip locked">13</div><div class="daychip locked">14</div>
+              </div>
+              <div class="card taskcard">
+                <div class="top"><div><div class="ttl">Full-Body Strength</div><div class="meta">32 min · 8 movements</div></div><div class="icon-box"><svg class="icon" style="stroke:var(--orange);"><use href="#i-dumbbell"/></svg></div></div>
+                <div class="bar" style="margin-top:8px;"><i style="width:62%"></i></div>
+              </div>
+              <div class="card taskcard">
+                <div class="top"><div><div class="ttl">High-Protein Day</div><div class="meta">3 meals · 2,100 kcal target</div></div><div class="icon-box"><svg class="icon" style="stroke:var(--orange);"><use href="#i-apple"/></svg></div></div>
+                <p style="margin:6px 0 0; font-size:11.5px; color:var(--fg-dim);">Breakfast · Lunch · Dinner + 1 snack</p>
+              </div>
+              <div class="card" style="padding:12px 14px;">
+                <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px;">Coach note</div>
+                <p style="margin:0; font-size:12px; line-height:1.5;">"You've cleared week one — day 12 is where habits start sticking. Keep the protein target honest today."</p>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><span class="dot"></span>Home</div>
+              <div class="tab active"><span class="dot"></span>Challenge</div>
+              <div class="tab"><span class="dot"></span>Progress</div>
+              <div class="tab"><span class="dot"></span>Awards</div>
+              <div class="tab"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Challenge day</span><h3>Day 12 detail</h3><p>Locked days show as reachable-later, not hidden — anticipation without a wall of future content to scroll past.</p></div>
+      </div>
+
+      <!-- 6. Workout overview -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div>
+                <div class="ttl" style="font-weight:700; font-size:16px;">Full-Body Strength</div>
+                <div class="meta" style="font-size:11.5px; color:var(--fg-dim); margin-top:2px;">32 min · 8 movements · warm-up included</div>
+              </div>
+              <div class="bar"><i style="width:25%"></i></div>
+              <div class="card" style="padding:8px;">
+                <div class="movelist">
+                  <div class="move-row done"><span class="n"><svg class="icon" style="width:11px;height:11px;stroke:#0e1f14;"><use href="#i-check"/></svg></span><div class="mv"><div class="t">Warm-up — Dynamic Mobility</div><div class="s">5 min</div></div></div>
+                  <div class="move-row done"><span class="n"><svg class="icon" style="width:11px;height:11px;stroke:#0e1f14;"><use href="#i-check"/></svg></span><div class="mv"><div class="t">Goblet Squat</div><div class="s">3 × 12</div></div></div>
+                  <div class="move-row next"><span class="n">3</span><div class="mv"><div class="t">Romanian Deadlift</div><div class="s">3 × 10</div></div></div>
+                  <div class="move-row up"><span class="n">4</span><div class="mv"><div class="t">Push-Up</div><div class="s">3 × 15</div></div></div>
+                  <div class="move-row up"><span class="n">5</span><div class="mv"><div class="t">Bent-Over Row</div><div class="s">3 × 12</div></div></div>
+                  <div class="move-row up"><span class="n">6</span><div class="mv"><div class="t">Plank Hold</div><div class="s">3 × 40s</div></div></div>
+                </div>
+              </div>
+              <div class="btn primary">Continue — Romanian Deadlift <svg class="icon"><use href="#i-play"/></svg></div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Workout</span><h3>Workout overview</h3><p>The whole session at a glance — done, current, and up-next movements — so a member always knows how much is left without leaving the screen.</p></div>
+      </div>
+
+      <!-- 7. Exercise / video -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body" style="padding:0 0 12px;">
+              <div class="photo" style="height:180px; border-radius:0; flex:0 0 auto;">
+                <div class="figure"></div>
+                <div class="label" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;">
+                  <div style="width:48px; height:48px; border-radius:50%; background:#f6f3eee6; display:flex; align-items:center; justify-content:center;"><svg class="icon lg" style="stroke:#141312;"><use href="#i-play"/></svg></div>
+                </div>
+                <span class="pill muted label" style="position:absolute; right:10px; top:10px;">3 / 8</span>
+              </div>
+              <div style="padding:14px 16px 0; display:flex; flex-direction:column; gap:10px;">
+                <div>
+                  <div class="ttl" style="font-weight:700; font-size:15px;">Romanian Deadlift</div>
+                  <div class="meta" style="font-size:11.5px; color:var(--fg-dim); margin-top:2px;">3 sets · 10 reps · 45s rest · dumbbells</div>
+                </div>
+                <p style="margin:0; font-size:11.5px; color:var(--fg-dim); line-height:1.55;">Soft knees, hinge at the hips and let the weight travel down the shins. Coach cue: keep the bar close, chest tall through the whole rep.</p>
+                <div class="btn primary">Mark Exercise Complete <svg class="icon"><use href="#i-check"/></svg></div>
+              </div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Exercise</span><h3>Video &amp; movement</h3><p>Video leads, instructions stay short — the coach's cue is one sentence a member can hold in their head mid-set.</p></div>
+      </div>
+
+      <!-- 8. Workout complete -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body" style="align-items:center; justify-content:center; text-align:center; gap:16px;">
+              <div style="width:64px; height:64px; border-radius:50%; background:linear-gradient(155deg,var(--orange),var(--orange-2)); display:flex; align-items:center; justify-content:center;"><svg class="icon lg" style="stroke:#141312; width:28px; height:28px;"><use href="#i-check"/></svg></div>
+              <div>
+                <div style="font-family:var(--font-display); font-weight:800; font-size:24px;">Workout Complete</div>
+                <p style="margin:6px 0 0; font-size:12px; color:var(--fg-dim); max-width:22ch;">Full-Body Strength — Day 12 logged at 8:42 AM.</p>
+              </div>
+              <div class="statgrid" style="width:100%;">
+                <div class="card raise cell"><div class="n num">31</div><div class="l">Minutes</div></div>
+                <div class="card raise cell"><div class="n num">8/8</div><div class="l">Movements</div></div>
+              </div>
+              <div class="card raise" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;"><svg class="icon" style="stroke:var(--amber);"><use href="#i-flame"/></svg><span style="font-size:12.5px; font-weight:700;">Streak now <span class="num" style="color:var(--amber);">8</span> days</span></div>
+              <div class="btn primary" style="width:100%;">Continue to Nutrition <svg class="icon"><use href="#i-arrow"/></svg></div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Confirmation</span><h3>Workout complete</h3><p>A short, specific payoff — time, movements, streak — then a direct hand-off into nutrition, the next task in the day.</p></div>
+      </div>
+
+      <!-- 9. Nutrition detail -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="card">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <div class="kcal-ring" style="width:60px; height:60px; background:conic-gradient(var(--orange) 0turn .71turn, var(--line) 0turn);">
+                    <div class="val"><span class="n num" style="font-size:13px;">71%</span></div>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:10.5px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Calories today</div>
+                    <div class="num" style="font-size:15px; font-weight:700; margin-top:1px;">1,490 <span style="color:var(--fg-dim); font-weight:500; font-size:12px;">/ 2,100 kcal</span></div>
+                  </div>
+                </div>
+                <div class="macro-row" style="margin-top:12px;">
+                  <div class="macro-chip protein"><div class="v num">142g</div><div class="l">Protein</div></div>
+                  <div class="macro-chip carb"><div class="v num">118g</div><div class="l">Carbs</div></div>
+                  <div class="macro-chip fat"><div class="v num">44g</div><div class="l">Fat</div></div>
+                </div>
+              </div>
+              <div class="card raise" style="display:flex; gap:10px; align-items:center;">
+                <div class="photo" style="width:52px; height:52px; border-radius:9px; flex:0 0 auto;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;"><div class="ttl" style="font-weight:700; font-size:12.5px;">Breakfast</div><span class="pill green">Logged</span></div>
+                  <div class="meta" style="font-size:11px; color:var(--fg-dim);">Egg whites, oats, banana · 420 kcal</div>
+                  <div class="macro-mini"><span><i style="background:var(--orange)"></i>32P</span><span><i style="background:var(--amber)"></i>48C</span><span><i style="background:var(--green)"></i>9F</span></div>
+                </div>
+              </div>
+              <div class="card raise" style="display:flex; gap:10px; align-items:center; border:1px solid var(--orange);">
+                <div class="photo" style="width:52px; height:52px; border-radius:9px; flex:0 0 auto;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;"><div class="ttl" style="font-weight:700; font-size:12.5px;">Lunch</div><span class="pill orange">Log now</span></div>
+                  <div class="meta" style="font-size:11px; color:var(--fg-dim);">Grilled chicken, rice, greens · 560 kcal</div>
+                  <div class="macro-mini"><span><i style="background:var(--orange)"></i>52P</span><span><i style="background:var(--amber)"></i>44C</span><span><i style="background:var(--green)"></i>12F</span></div>
+                </div>
+              </div>
+              <div class="card raise" style="display:flex; gap:10px; align-items:center; opacity:.6;">
+                <div class="photo" style="width:52px; height:52px; border-radius:9px; flex:0 0 auto;"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;"><div class="ttl" style="font-weight:700; font-size:12.5px;">Dinner</div><span class="pill muted">Upcoming</span></div>
+                  <div class="meta" style="font-size:11px; color:var(--fg-dim);">Salmon, sweet potato · 510 kcal</div>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><span class="dot"></span>Home</div>
+              <div class="tab active"><span class="dot"></span>Challenge</div>
+              <div class="tab"><span class="dot"></span>Progress</div>
+              <div class="tab"><span class="dot"></span>Awards</div>
+              <div class="tab"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Nutrition</span><h3>Today's meals</h3><p>Calories lead with a compact ring, macros get their own full-width row beneath it, and each meal card carries its own protein/carb/fat mini-breakdown.</p></div>
+      </div>
+
+      <!-- 10. Meal detail -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body" style="padding:0 0 12px;">
+              <div class="photo" style="height:140px; border-radius:0; flex:0 0 auto;"><div class="figure"></div></div>
+              <div style="padding:14px 16px 0; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <div><div class="ttl" style="font-weight:700; font-size:15px;">Lunch — High-Protein Bowl</div><div class="meta" style="font-size:11px; color:var(--fg-dim); margin-top:2px;">Grilled chicken, rice, greens</div></div>
+                  <div style="text-align:right; flex:0 0 auto;"><div class="num" style="font-family:var(--font-display); font-weight:800; font-size:20px;">560</div><div style="font-size:9px; color:var(--fg-dim);">KCAL</div></div>
+                </div>
+                <div class="macro-row">
+                  <div class="macro-chip protein"><div class="v num">52g</div><div class="l">Protein</div></div>
+                  <div class="macro-chip carb"><div class="v num">44g</div><div class="l">Carbs</div></div>
+                  <div class="macro-chip fat"><div class="v num">12g</div><div class="l">Fat</div></div>
+                </div>
+                <div class="macro-bar"><b style="width:52%; background:var(--orange);"></b><b style="width:34%; background:var(--amber);"></b><b style="width:14%; background:var(--green);"></b></div>
+                <div class="card raise" style="padding:6px 12px;">
+                  <div class="ingredient"><span class="l">Chicken breast</span><span>220g</span></div>
+                  <div class="ingredient"><span class="l">Jasmine rice</span><span>150g</span></div>
+                  <div class="ingredient"><span class="l">Mixed greens</span><span>80g</span></div>
+                  <div class="ingredient"><span class="l">Olive oil</span><span>1 tbsp</span></div>
+                </div>
+                <div class="btn primary">Mark Meal Complete <svg class="icon"><use href="#i-check"/></svg></div>
+              </div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Meal detail</span><h3>Meal breakdown</h3><p>Full macro split and ingredients for one meal, ending in the same "mark complete" pattern as a workout — consistent across the whole day.</p></div>
+      </div>
+
+      <!-- 11. Daily check-in -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div>
+                <div class="ttl" style="font-weight:700; font-size:16px;">How did today go?</div>
+                <div class="meta" style="font-size:11.5px; color:var(--fg-dim); margin-top:2px;">Day 12 · takes 10 seconds</div>
+              </div>
+              <div class="card" style="padding:4px 12px;">
+                <div class="checkin-row"><span class="l"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-dumbbell"/></svg>Workout completed</span><div class="toggle on"></div></div>
+                <div class="checkin-row" style="border-top:1px solid var(--line);"><span class="l"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-apple"/></svg>Nutrition followed</span><div class="toggle on"></div></div>
+                <div class="checkin-row" style="border-top:1px solid var(--line);"><span class="l"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-bolt"/></svg>8,000 steps</span><div class="toggle"></div></div>
+              </div>
+              <div class="field"><label>Notes (optional)</label><div class="box" style="height:52px;"></div></div>
+              <div class="btn primary">Submit Check-in</div>
+            </div>
+            <div class="tabbar" style="border-top:none; background:transparent;"></div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Check-in</span><h3>Daily check-in</h3><p>Toggles, not a form — a 10-second confirmation that closes the day and feeds the streak and progress logic.</p></div>
+      </div>
+
+      <!-- 12. Progress -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="card">
+                <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Challenge progress</div>
+                <div class="bigstat" style="margin:6px 0 8px;"><span class="n">40</span><span class="u">%<br>complete</span></div>
+                <div class="bar"><i style="width:40%"></i></div>
+              </div>
+              <div class="statgrid">
+                <div class="card raise cell"><div class="n num">18</div><div class="l">Days done</div></div>
+                <div class="card raise cell"><div class="n num">18</div><div class="l">Days left</div></div>
+                <div class="card raise cell"><div class="n num">7</div><div class="l">Current streak</div></div>
+                <div class="card raise cell"><div class="n num">9</div><div class="l">Best streak</div></div>
+              </div>
+              <div class="card">
+                <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Last 10 days</div>
+                <div class="calgrid">
+                  <i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="done"></i><i class="today"></i>
+                </div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><span class="dot"></span>Home</div>
+              <div class="tab"><span class="dot"></span>Challenge</div>
+              <div class="tab active"><span class="dot"></span>Progress</div>
+              <div class="tab"><span class="dot"></span>Awards</div>
+              <div class="tab"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Progress</span><h3>Progress</h3><p>One ring, four numbers, ten squares. Deliberately under-designed against the spec's own warning against dense dashboards.</p></div>
+      </div>
+
+      <!-- 13. Achievements -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="greet" style="font-size:11px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; color:var(--fg-dim);">5 of 8 unlocked</div>
+              <div class="achgrid">
+                <div class="card ach unlocked"><div class="medal">1</div><div class="t">First Step</div><div class="d">Complete Day 1</div></div>
+                <div class="card ach unlocked"><div class="medal">3</div><div class="t">3-Day Streak</div><div class="d">3 days in a row</div></div>
+                <div class="card ach unlocked"><div class="medal">7</div><div class="t">7-Day Streak</div><div class="d">7 days in a row</div></div>
+                <div class="card ach unlocked"><div class="medal">½</div><div class="t">Halfway There</div><div class="d">50% complete</div></div>
+                <div class="card ach unlocked"><div class="medal">W</div><div class="t">Workout Warrior</div><div class="d">10 workouts done</div></div>
+                <div class="card ach locked"><div class="medal">14</div><div class="t">Consistency</div><div class="d">14-day streak</div></div>
+                <div class="card ach locked"><div class="medal">N</div><div class="t">Nutrition Champion</div><div class="d">10 nutrition check-ins</div></div>
+                <div class="card ach locked"><div class="medal">★</div><div class="t">Finisher</div><div class="d">Complete challenge</div></div>
+              </div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><span class="dot"></span>Home</div>
+              <div class="tab"><span class="dot"></span>Challenge</div>
+              <div class="tab"><span class="dot"></span>Progress</div>
+              <div class="tab active"><span class="dot"></span>Awards</div>
+              <div class="tab"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Achievements</span><h3>Achievements</h3><p>Locked badges stay visible and greyed rather than hidden, so the next unlock is always in view as a pull forward.</p></div>
+      </div>
+
+      <!-- 14. Profile -->
+      <div class="phone-slot">
+        <div class="device"><div class="notch"></div>
+          <div class="screen">
+            <div class="statusbar"><span>9:41</span><span>●●●●</span></div>
+            <div class="screen-body">
+              <div class="card" style="display:flex; gap:12px; align-items:center;">
+                <div class="avatar" style="width:46px; height:46px; font-size:14px;">AH</div>
+                <div style="flex:1;">
+                  <div class="ttl" style="font-weight:700; font-size:14.5px;">Ahmed Khaled</div>
+                  <div class="meta" style="font-size:11px; color:var(--fg-dim);">Coach: Youssef · 30-Day Challenge</div>
+                </div>
+              </div>
+              <div class="card raise" style="display:flex; align-items:center; justify-content:space-between;"><span style="font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:8px;"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-trophy"/></svg>Achievements</span><span class="pill orange">4</span></div>
+              <div class="card raise" style="display:flex; align-items:center; justify-content:space-between;"><span style="font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:8px;"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-clock"/></svg>Challenge history</span><span class="pill muted">2</span></div>
+              <div class="card raise" style="display:flex; align-items:center; justify-content:space-between;"><span style="font-size:12.5px; font-weight:600; display:flex; align-items:center; gap:8px;"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-bolt"/></svg>Notifications</span><span class="pill green">On</span></div>
+              <div class="btn ghost" style="margin-top:auto;">Log Out</div>
+            </div>
+            <div class="tabbar">
+              <div class="tab"><span class="dot"></span>Home</div>
+              <div class="tab"><span class="dot"></span>Challenge</div>
+              <div class="tab"><span class="dot"></span>Progress</div>
+              <div class="tab"><span class="dot"></span>Awards</div>
+              <div class="tab active"><span class="dot"></span>Profile</div>
+            </div>
+          </div>
+        </div>
+        <div class="caption"><span class="tag">Customer · Profile</span><h3>Profile</h3><p>Settings and history live here, deliberately away from the daily flow — the profile is a destination, not a detour.</p></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="coach">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Coach &amp; admin console</h2>
+        <p>Same tokens, denser grid. The desktop console trades the phone's single-column focus for the operational question coaches actually ask: <em>who needs me today?</em> — active challenges, an attention queue, cohort trend, a recent-activity feed, a scannable customer roster, and the leads waiting to be worked.</p>
+      </div>
+    </div>
+
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span class="on">Dashboard</span><span>Customers</span><span>Challenges</span><span>Workouts</span><span>Nutrition</span><span>Leads</span>
+        </div>
+      </div>
+      <div class="coach-body">
+        <div class="coach-col">
+          <div class="coach-kpis">
+            <div class="kpi"><div class="n num">146</div><div class="l">Active customers</div></div>
+            <div class="kpi"><div class="n num">89%</div><div class="l">Checked in today</div></div>
+            <div class="kpi"><div class="n num">62%</div><div class="l">Avg. completion</div></div>
+          </div>
+
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Active challenges</div>
+          <div class="challenge-strip">
+            <div class="challenge-mini">
+              <div class="top"><div><div class="t">30-Day Transformation</div><div class="m">Started Sep 1</div></div><span class="pill green">Active</span></div>
+              <div class="stat"><span>Participants</span><b class="num">146</b></div>
+              <div class="stat"><span>Completion</span><b class="num">71%</b></div>
+            </div>
+            <div class="challenge-mini">
+              <div class="top"><div><div class="t">Lean &amp; Strong — 8wk</div><div class="m">Starts Oct 6</div></div><span class="pill muted">Scheduled</span></div>
+              <div class="stat"><span>Pre-registered</span><b class="num">34</b></div>
+              <div class="stat"><span>Coaches</span><b class="num">2</b></div>
+            </div>
+            <div class="challenge-mini" style="opacity:.6;">
+              <div class="top"><div><div class="t">Summer Shred</div><div class="m">Ended Aug 12</div></div><span class="pill muted">Completed</span></div>
+              <div class="stat"><span>Finishers</span><b class="num">68%</b></div>
+              <div class="stat"><span>Participants</span><b class="num">92</b></div>
+            </div>
+          </div>
+
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Needs attention</div>
+          <div class="attn-row">
+            <div class="who"><div class="avatar">AH</div><div><div class="name">Ahmed K.</div><div class="why">Day 8 — no check-in for 2 days</div></div></div>
+            <span class="pill orange">Message</span>
+          </div>
+          <div class="attn-row">
+            <div class="who"><div class="avatar">SR</div><div><div class="name">Sara R.</div><div class="why">Day 12 — workout incomplete today</div></div></div>
+            <span class="pill orange">Message</span>
+          </div>
+          <div class="attn-row">
+            <div class="who"><div class="avatar">MJ</div><div><div class="name">Mona J.</div><div class="why">Day 20 — 1 day from a milestone</div></div></div>
+            <span class="pill green">Nudge</span>
+          </div>
+        </div>
+        <div class="coach-col">
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">30-Day Challenge · cohort</div>
+          <div class="side-list">
+            <div class="item"><span class="l">Participants</span><span class="r num">146</span></div>
+            <div class="item"><span class="l">Completion rate</span><span class="r num">71%</span></div>
+            <div class="item"><span class="l">Drop-off — worst day</span><span class="r num">Day 6</span></div>
+            <div class="item"><span class="l">New leads this week</span><span class="r num">23</span></div>
+            <div class="item"><span class="l">Lead → member</span><span class="r num">31%</span></div>
+          </div>
+
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:20px 0 10px;">Completion trend — 4 weeks</div>
+          <svg viewBox="0 0 220 60" style="width:100%; height:60px; overflow:visible;" role="img" aria-label="Weekly completion trend rising from 51 percent to 71 percent">
+            <polyline points="4,44 58,38 112,30 166,20 216,10" fill="none" stroke="var(--line)" stroke-width="10" stroke-linecap="round" opacity=".4"/>
+            <polyline points="4,44 58,38 112,30 166,20 216,10" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="216" cy="10" r="4.5" fill="var(--orange)"/>
+            <text x="4" y="58" font-size="9" fill="var(--muted)" font-family="Barlow">Wk 1 · 51%</text>
+            <text x="176" y="6" font-size="9" fill="var(--orange)" font-family="Barlow" font-weight="700">71%</text>
+          </svg>
+
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:20px 0 10px;">Recent activity</div>
+          <div class="activity-feed">
+            <div class="activity-row">
+              <div class="ic"><svg class="icon" style="width:13px;height:13px;stroke:var(--orange);"><use href="#i-trophy"/></svg></div>
+              <div class="tx"><b>Lina T.</b> unlocked <b>Consistency</b></div>
+              <div class="time">12m</div>
+            </div>
+            <div class="activity-row">
+              <div class="ic"><svg class="icon" style="width:13px;height:13px;stroke:var(--green);"><use href="#i-users"/></svg></div>
+              <div class="tx"><b>3 new</b> registrations — 30-Day Challenge</div>
+              <div class="time">1h</div>
+            </div>
+            <div class="activity-row">
+              <div class="ic"><svg class="icon" style="width:13px;height:13px;stroke:var(--amber);"><use href="#i-flame"/></svg></div>
+              <div class="tx"><b>Mona J.</b> hit a <b>20-day streak</b></div>
+              <div class="time">3h</div>
+            </div>
+            <div class="activity-row">
+              <div class="ic"><svg class="icon" style="width:13px;height:13px;stroke:var(--fg-dim);"><use href="#i-clock"/></svg></div>
+              <div class="tx"><b>Ahmed K.</b> missed check-in — Day 8</div>
+              <div class="time">Yesterday</div>
+            </div>
+          </div>
+
+          <div class="btn primary" style="margin-top:16px;">+ New Challenge Day</div>
+        </div>
+      </div>
+
+      <div class="coach-table">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Customers · 30-Day Challenge</div>
+          <span class="pill muted">146 total</span>
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="ctable">
+          <thead><tr><th>Customer</th><th>Day</th><th>Completion</th><th>Streak</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="who"><div class="avatar">MJ</div>Mona J.</td>
+              <td class="num">20 / 30</td>
+              <td><div class="mini-bar"><i style="width:88%"></i></div></td>
+              <td class="num" style="display:flex;align-items:center;gap:4px;"><svg class="icon" style="width:12px;height:12px;stroke:var(--amber);"><use href="#i-flame"/></svg>12</td>
+              <td><span class="status-dot on">On track</span></td>
+            </tr>
+            <tr>
+              <td class="who"><div class="avatar">SR</div>Sara R.</td>
+              <td class="num">12 / 30</td>
+              <td><div class="mini-bar"><i style="width:54%"></i></div></td>
+              <td class="num">2</td>
+              <td><span class="status-dot risk">Needs attention</span></td>
+            </tr>
+            <tr>
+              <td class="who"><div class="avatar">AH</div>Ahmed K.</td>
+              <td class="num">8 / 30</td>
+              <td><div class="mini-bar"><i style="width:38%"></i></div></td>
+              <td class="num">0</td>
+              <td><span class="status-dot risk">Needs attention</span></td>
+            </tr>
+            <tr>
+              <td class="who"><div class="avatar">LT</div>Lina T.</td>
+              <td class="num">27 / 30</td>
+              <td><div class="mini-bar"><i style="width:96%"></i></div></td>
+              <td class="num" style="display:flex;align-items:center;gap:4px;"><svg class="icon" style="width:12px;height:12px;stroke:var(--amber);"><use href="#i-flame"/></svg>18</td>
+              <td><span class="status-dot on">On track</span></td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div class="leads-panel">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+          <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em;">Recent leads</div>
+          <span class="pill orange">23 new this week</span>
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="ctable">
+          <thead><tr><th>Name</th><th>Interested in</th><th>Contact</th><th>Status</th><th>Received</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="who"><div class="avatar">RK</div>Rana Kamel</td>
+              <td>30-Day Challenge</td>
+              <td class="num">+20 10 ••• 4471</td>
+              <td><span class="pill orange">New</span></td>
+              <td class="num">2h ago</td>
+            </tr>
+            <tr>
+              <td class="who"><div class="avatar">TF</div>Tarek Farouk</td>
+              <td>Personal Training</td>
+              <td class="num">+20 12 ••• 8820</td>
+              <td><span class="pill muted">Contacted</span></td>
+              <td class="num">Yesterday</td>
+            </tr>
+            <tr>
+              <td class="who"><div class="avatar">HN</div>Hana Nabil</td>
+              <td>Gym Membership</td>
+              <td class="num">+20 11 ••• 0093</td>
+              <td><span class="pill green">Qualified</span></td>
+              <td class="num">2 days ago</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="btn ghost" style="margin-top:14px; max-width:180px;">View all leads</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach-customers">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Customers</h2>
+        <p>Search, filter, and open any member into a timeline of their activity — the view a coach lives in day to day.</p>
+      </div>
+    </div>
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span>Dashboard</span><span class="on">Customers</span><span>Challenges</span><span>Workouts</span><span>Nutrition</span><span>Leads</span>
+        </div>
+      </div>
+      <div style="padding:24px 26px;">
+        <div class="cc-cols">
+          <div>
+            <div class="filter-bar">
+              <div class="search-box"><svg class="icon" style="width:13px;height:13px;"><use href="#i-users"/></svg> Search customers…</div>
+              <span class="filter-chip active">30-Day Challenge</span>
+              <span class="filter-chip">All coaches</span>
+              <span class="filter-chip">At risk</span>
+            </div>
+            <div style="overflow-x:auto;">
+            <table class="ctable">
+              <thead><tr><th>Customer</th><th>Coach</th><th>Day</th><th>Completion</th><th>Streak</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr style="background:var(--card-2);">
+                  <td class="who"><div class="avatar">MJ</div>Mona J.</td>
+                  <td>Youssef</td>
+                  <td class="num">20 / 30</td>
+                  <td><div class="mini-bar"><i style="width:88%"></i></div></td>
+                  <td class="num">12</td>
+                  <td><span class="status-dot on">On track</span></td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">SR</div>Sara R.</td>
+                  <td>Nour</td>
+                  <td class="num">12 / 30</td>
+                  <td><div class="mini-bar"><i style="width:54%"></i></div></td>
+                  <td class="num">2</td>
+                  <td><span class="status-dot risk">Needs attention</span></td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">AH</div>Ahmed K.</td>
+                  <td>Youssef</td>
+                  <td class="num">8 / 30</td>
+                  <td><div class="mini-bar"><i style="width:38%"></i></div></td>
+                  <td class="num">0</td>
+                  <td><span class="status-dot risk">Needs attention</span></td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">LT</div>Lina T.</td>
+                  <td>Omar</td>
+                  <td class="num">27 / 30</td>
+                  <td><div class="mini-bar"><i style="width:96%"></i></div></td>
+                  <td class="num">18</td>
+                  <td><span class="status-dot on">On track</span></td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">KM</div>Karim M.</td>
+                  <td>Nour</td>
+                  <td class="num">30 / 30</td>
+                  <td><div class="mini-bar"><i style="width:100%"></i></div></td>
+                  <td class="num">30</td>
+                  <td><span class="status-dot on">Finished</span></td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+
+          <div class="detail-panel">
+            <div class="dp-head">
+              <div class="avatar" style="width:42px; height:42px; font-size:13px;">MJ</div>
+              <div>
+                <div style="font-weight:700; font-size:14px;">Mona J.</div>
+                <div style="font-size:11px; color:var(--fg-dim);">Coach: Youssef · Day 20 / 30</div>
+              </div>
+            </div>
+            <div class="statgrid" style="margin-bottom:14px;">
+              <div class="card raise cell"><div class="n num">88%</div><div class="l">Completion</div></div>
+              <div class="card raise cell"><div class="n num">12</div><div class="l">Streak</div></div>
+            </div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;">Last 5 days</div>
+            <div class="timeline">
+              <div class="tl-row"><span class="tl-dot on"></span><span class="tl-t">Day 20</span><span>Workout + nutrition + check-in — complete</span></div>
+              <div class="tl-row"><span class="tl-dot on"></span><span class="tl-t">Day 19</span><span>Full completion, water target hit</span></div>
+              <div class="tl-row"><span class="tl-dot on"></span><span class="tl-t">Day 18</span><span>Unlocked "Consistency" achievement</span></div>
+              <div class="tl-row"><span class="tl-dot miss"></span><span class="tl-t">Day 17</span><span>Nutrition skipped, workout done</span></div>
+              <div class="tl-row"><span class="tl-dot on"></span><span class="tl-t">Day 16</span><span>Full completion</span></div>
+            </div>
+            <div class="btn primary" style="margin-top:14px;">Add Note</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach-challenges">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Challenges</h2>
+        <p>Manage running and upcoming programs, then drop into any day to assign its workout, nutrition plan, and coach message.</p>
+      </div>
+    </div>
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span>Dashboard</span><span>Customers</span><span class="on">Challenges</span><span>Workouts</span><span>Nutrition</span><span>Leads</span>
+        </div>
+      </div>
+      <div style="padding:24px 26px;">
+        <div class="cc-cols">
+          <div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:12px;">All challenges</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+              <div class="lib-card">
+                <div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-bolt"/></svg></div>
+                <div class="info"><div class="t">30-Day Transformation</div><div class="m">Active · 146 participants · 71% completion</div></div>
+                <span class="pill green">Active</span>
+              </div>
+              <div class="lib-card">
+                <div class="ic"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-clock"/></svg></div>
+                <div class="info"><div class="t">Lean &amp; Strong — 8 Weeks</div><div class="m">Scheduled · Starts Oct 6 · 34 pre-registered</div></div>
+                <span class="pill muted">Scheduled</span>
+              </div>
+              <div class="lib-card" style="opacity:.6;">
+                <div class="ic"><svg class="icon" style="stroke:var(--fg-dim);"><use href="#i-trophy"/></svg></div>
+                <div class="info"><div class="t">Summer Shred</div><div class="m">Completed · 92 participants · 68% finished</div></div>
+                <span class="pill muted">Archived</span>
+              </div>
+            </div>
+            <div class="btn ghost" style="max-width:180px;">+ New Challenge</div>
+
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin:22px 0 10px;">30-Day Transformation · days</div>
+            <div class="daybuilder-grid">
+              <div class="daybuilder-cell set">1</div><div class="daybuilder-cell set">2</div><div class="daybuilder-cell set">3</div><div class="daybuilder-cell set">4</div><div class="daybuilder-cell set">5</div>
+              <div class="daybuilder-cell set">6</div><div class="daybuilder-cell set">7</div><div class="daybuilder-cell set">8</div><div class="daybuilder-cell set">9</div><div class="daybuilder-cell set">10</div>
+              <div class="daybuilder-cell set">11</div><div class="daybuilder-cell today">12</div><div class="daybuilder-cell empty">13</div><div class="daybuilder-cell empty">14</div><div class="daybuilder-cell empty">15</div>
+              <div class="daybuilder-cell empty">16</div><div class="daybuilder-cell empty">17</div><div class="daybuilder-cell empty">18</div><div class="daybuilder-cell empty">19</div><div class="daybuilder-cell empty">20</div>
+            </div>
+            <div class="db-legend">
+              <span><i style="background:var(--orange-soft); border:1px solid var(--orange);"></i>Configured</span>
+              <span><i style="background:var(--orange);"></i>Today</span>
+              <span><i style="background:transparent; border:1px dashed var(--line);"></i>Not built yet</span>
+            </div>
+          </div>
+
+          <div class="day-editor">
+            <div class="dt">Day 12 — editing</div>
+            <div class="de-row"><span class="l"><svg class="icon" style="width:14px;height:14px;stroke:var(--fg-dim);"><use href="#i-dumbbell"/></svg>Workout</span><span style="font-weight:700;">Full-Body Strength</span></div>
+            <div class="de-row"><span class="l"><svg class="icon" style="width:14px;height:14px;stroke:var(--fg-dim);"><use href="#i-apple"/></svg>Nutrition plan</span><span style="font-weight:700;">High-Protein Day</span></div>
+            <div class="de-row"><span class="l"><svg class="icon" style="width:14px;height:14px;stroke:var(--fg-dim);"><use href="#i-check"/></svg>Check-in rules</span><span style="font-weight:700;">Workout + Nutrition</span></div>
+            <div class="field" style="margin-top:12px;"><label>Coach message</label><div class="box" style="height:52px;"></div></div>
+            <div class="btn primary" style="margin-top:12px;">Save Day 12</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach-workouts">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Workouts</h2>
+        <p>A reusable workout &amp; exercise library — built once, assigned to any challenge day instead of recreated each time.</p>
+      </div>
+    </div>
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span>Dashboard</span><span>Customers</span><span>Challenges</span><span class="on">Workouts</span><span>Nutrition</span><span>Leads</span>
+        </div>
+      </div>
+      <div style="padding:24px 26px;">
+        <div class="filter-bar">
+          <div class="search-box"><svg class="icon" style="width:13px;height:13px;"><use href="#i-dumbbell"/></svg> Search workouts…</div>
+          <span class="filter-chip active">All</span>
+          <span class="filter-chip">Strength</span>
+          <span class="filter-chip">Mobility</span>
+          <span class="filter-chip">Cardio</span>
+        </div>
+        <div class="cc-cols">
+          <div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Workout library</div>
+            <div class="lib-list">
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-dumbbell"/></svg></div><div class="info"><div class="t">Full-Body Strength</div><div class="m">32 min · 8 movements · used in 4 challenge days</div></div></div>
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-bolt"/></svg></div><div class="info"><div class="t">HIIT Conditioning</div><div class="m">20 min · 6 movements · used in 3 challenge days</div></div></div>
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-clock"/></svg></div><div class="info"><div class="t">Dynamic Mobility Warm-up</div><div class="m">8 min · 5 movements · used in 12 challenge days</div></div></div>
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-flame"/></svg></div><div class="info"><div class="t">Lower Body Power</div><div class="m">28 min · 7 movements · used in 2 challenge days</div></div></div>
+            </div>
+            <div class="btn ghost" style="max-width:170px; margin-top:14px;">+ New Workout</div>
+          </div>
+
+          <div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Exercise library</div>
+            <div style="overflow-x:auto;">
+            <table class="ctable">
+              <thead><tr><th>Exercise</th><th>Category</th><th>Difficulty</th><th>Video</th></tr></thead>
+              <tbody>
+                <tr><td>Goblet Squat</td><td class="num">Strength</td><td><span class="pill muted">Beginner</span></td><td><svg class="icon" style="width:14px;height:14px;stroke:var(--green);"><use href="#i-play"/></svg></td></tr>
+                <tr><td>Romanian Deadlift</td><td class="num">Strength</td><td><span class="pill orange">Intermediate</span></td><td><svg class="icon" style="width:14px;height:14px;stroke:var(--green);"><use href="#i-play"/></svg></td></tr>
+                <tr><td>Push-Up</td><td class="num">Strength</td><td><span class="pill muted">Beginner</span></td><td><svg class="icon" style="width:14px;height:14px;stroke:var(--green);"><use href="#i-play"/></svg></td></tr>
+                <tr><td>Plank Hold</td><td class="num">Core</td><td><span class="pill muted">Beginner</span></td><td><svg class="icon" style="width:14px;height:14px;stroke:var(--muted);"><use href="#i-lock"/></svg></td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach-nutrition">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Nutrition</h2>
+        <p>The same reuse principle as workouts — plans and meals are built once in a library, then assigned to challenge days.</p>
+      </div>
+    </div>
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span>Dashboard</span><span>Customers</span><span>Challenges</span><span>Workouts</span><span class="on">Nutrition</span><span>Leads</span>
+        </div>
+      </div>
+      <div style="padding:24px 26px;">
+        <div class="filter-bar">
+          <div class="search-box"><svg class="icon" style="width:13px;height:13px;"><use href="#i-apple"/></svg> Search plans…</div>
+          <span class="filter-chip active">All</span>
+          <span class="filter-chip">High-Protein</span>
+          <span class="filter-chip">Low-Carb</span>
+          <span class="filter-chip">Maintenance</span>
+        </div>
+        <div class="cc-cols">
+          <div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Nutrition plans</div>
+            <div class="lib-list">
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-apple"/></svg></div><div class="info"><div class="t">High-Protein Day</div><div class="m">2,100 kcal · 3 meals + 1 snack · used in 6 days</div></div></div>
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-apple"/></svg></div><div class="info"><div class="t">Lean Cut</div><div class="m">1,800 kcal · 3 meals · used in 4 days</div></div></div>
+              <div class="lib-card"><div class="ic"><svg class="icon" style="stroke:var(--orange);"><use href="#i-apple"/></svg></div><div class="info"><div class="t">Maintenance</div><div class="m">2,300 kcal · 3 meals + 2 snacks · used in 8 days</div></div></div>
+            </div>
+            <div class="btn ghost" style="max-width:170px; margin-top:14px;">+ New Plan</div>
+          </div>
+
+          <div>
+            <div style="font-size:11px; color:var(--fg-dim); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:10px;">Meal library</div>
+            <div style="overflow-x:auto;">
+            <table class="ctable">
+              <thead><tr><th>Meal</th><th>Kcal</th><th>P / C / F</th><th>Used</th></tr></thead>
+              <tbody>
+                <tr><td>Egg Whites &amp; Oats</td><td class="num">420</td><td class="num">32 / 48 / 9</td><td class="num">14×</td></tr>
+                <tr><td>Grilled Chicken Bowl</td><td class="num">560</td><td class="num">52 / 44 / 12</td><td class="num">11×</td></tr>
+                <tr><td>Salmon &amp; Sweet Potato</td><td class="num">510</td><td class="num">41 / 39 / 18</td><td class="num">9×</td></tr>
+                <tr><td>Greek Yogurt &amp; Berries</td><td class="num">240</td><td class="num">18 / 26 / 6</td><td class="num">20×</td></tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coach-leads">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Leads</h2>
+        <p>Every inquiry from the public site's lead form, filterable and assignable, with a running note history per lead.</p>
+      </div>
+    </div>
+    <div class="coach-panel">
+      <div class="coach-topbar">
+        <div class="brandline"><span class="logo-word" style="font-size:18px;">PO<span class="digit">1</span>NT</span><span style="font-size:11px; color:var(--fg-dim); font-weight:600; letter-spacing:.1em; margin-left:6px;">COACH</span></div>
+        <div class="coach-nav">
+          <span>Dashboard</span><span>Customers</span><span>Challenges</span><span>Workouts</span><span>Nutrition</span><span class="on">Leads</span>
+        </div>
+      </div>
+      <div style="padding:24px 26px;">
+        <div class="filter-bar">
+          <span class="filter-chip active">All</span>
+          <span class="filter-chip">New</span>
+          <span class="filter-chip">Contacted</span>
+          <span class="filter-chip">Qualified</span>
+          <span class="filter-chip">Converted</span>
+        </div>
+        <div class="cc-cols">
+          <div>
+            <div style="overflow-x:auto;">
+            <table class="ctable">
+              <thead><tr><th>Name</th><th>Interested in</th><th>Assigned</th><th>Status</th><th>Received</th></tr></thead>
+              <tbody>
+                <tr style="background:var(--card-2);">
+                  <td class="who"><div class="avatar">RK</div>Rana Kamel</td>
+                  <td>30-Day Challenge</td>
+                  <td>Youssef</td>
+                  <td><span class="pill orange">New</span></td>
+                  <td class="num">2h ago</td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">TF</div>Tarek Farouk</td>
+                  <td>Personal Training</td>
+                  <td>Nour</td>
+                  <td><span class="pill muted">Contacted</span></td>
+                  <td class="num">Yesterday</td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">HN</div>Hana Nabil</td>
+                  <td>Gym Membership</td>
+                  <td>Unassigned</td>
+                  <td><span class="pill green">Qualified</span></td>
+                  <td class="num">2 days ago</td>
+                </tr>
+                <tr>
+                  <td class="who"><div class="avatar">OM</div>Omar M.</td>
+                  <td>30-Day Challenge</td>
+                  <td>Youssef</td>
+                  <td><span class="pill green">Converted</span></td>
+                  <td class="num">4 days ago</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+
+          <div class="detail-panel">
+            <div class="dp-head">
+              <div class="avatar" style="width:42px; height:42px; font-size:13px;">RK</div>
+              <div>
+                <div style="font-weight:700; font-size:14px;">Rana Kamel</div>
+                <div style="font-size:11px; color:var(--fg-dim);">+20 10 ••• 4471 · Prefers WhatsApp</div>
+              </div>
+            </div>
+            <div class="de-row"><span class="l">Interested in</span><span style="font-weight:700;">30-Day Challenge</span></div>
+            <div class="de-row"><span class="l">Assigned to</span><span style="font-weight:700;">Youssef</span></div>
+            <div class="de-row"><span class="l">Status</span><span class="pill orange">New</span></div>
+            <div class="field" style="margin-top:12px;"><label>Note</label><div class="box" style="height:52px;"></div></div>
+            <div class="btn primary" style="margin-top:12px;">Mark as Contacted</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="flow">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Proposed full flow</h2>
+        <p>Every screen above sits on one of three loops. Only the middle one repeats daily — it's the one the whole design is optimized for.</p>
+      </div>
+    </div>
+
+    <div class="flow-group">
+      <div class="fg-label">01 · First visit → active member</div>
+      <div class="flow-row">
+        <div class="flow-step"><span class="fn">1</span><div><div class="ft">Home</div><div class="fd">Public landing</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">2</span><div><div class="ft">Challenge details</div><div class="fd">30-Day overview</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">3</span><div><div class="ft">Register</div><div class="fd">Name, mobile, email</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">4</span><div><div class="ft">Join challenge</div><div class="fd">Coach assigned</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step" style="border-color:var(--orange);"><span class="fn">5</span><div><div class="ft">Day 1 unlocked</div><div class="fd">Enters the daily loop →</div></div></div>
+      </div>
+    </div>
+
+    <div class="flow-group">
+      <div class="fg-label">02 · Daily loop — repeats every day of the 30</div>
+      <div class="flow-row">
+        <div class="flow-step"><span class="fn">1</span><div><div class="ft">Log in</div><div class="fd">Mobile-first</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">2</span><div><div class="ft">Today</div><div class="fd">Dashboard</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">3</span><div><div class="ft">Day detail</div><div class="fd">Workout + nutrition</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">4</span><div><div class="ft">Workout overview</div><div class="fd">8 movements</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">5</span><div><div class="ft">Exercise + video</div><div class="fd">Per movement</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step" style="border-color:var(--green);"><span class="fn">6</span><div><div class="ft">Workout complete</div><div class="fd">Streak updates</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">7</span><div><div class="ft">Nutrition</div><div class="fd">Meals + macros</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">8</span><div><div class="ft">Meal detail</div><div class="fd">Per meal</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step" style="border-color:var(--green);"><span class="fn">9</span><div><div class="ft">Meal complete</div><div class="fd">Logged</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">10</span><div><div class="ft">Daily check-in</div><div class="fd">10-second toggles</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step" style="border-color:var(--orange);"><span class="fn">11</span><div><div class="ft">Progress + achievement</div><div class="fd">Day 13 unlocks tomorrow</div></div></div>
+      </div>
+    </div>
+
+    <div class="flow-group">
+      <div class="fg-label">03 · Coach loop — daily triage</div>
+      <div class="flow-row">
+        <div class="flow-step"><span class="fn">1</span><div><div class="ft">Coach dashboard</div><div class="fd">Cohort snapshot</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step" style="border-color:var(--orange);"><span class="fn">2</span><div><div class="ft">Needs attention</div><div class="fd">Missed check-ins</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">3</span><div><div class="ft">Customer detail</div><div class="fd">Full activity timeline</div></div></div>
+        <div class="flow-arrow"><svg class="icon"><use href="#i-arrow"/></svg></div>
+        <div class="flow-step"><span class="fn">4</span><div><div class="ft">Message or note</div><div class="fd">Closes the loop</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="principles">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Working principles</h2></div>
+    </div>
+    <div class="principles">
+      <div class="principle"><div class="k">01</div><h4>One CTA per screen</h4><p>Every member screen resolves to a single next action — join, continue, log in. Secondary options stay visually quieter.</p></div>
+      <div class="principle"><div class="k">02</div><h4>Orange is a verb</h4><p>The accent only appears on things you can act on: buttons, today's day, active progress. It never decorates static content.</p></div>
+      <div class="principle"><div class="k">03</div><h4>Locked, not hidden</h4><p>Future days and badges stay visible in a muted state — the roadmap is always in view, just not yet reachable.</p></div>
+      <div class="principle"><div class="k">04</div><h4>Cards over tables</h4><p>Member-facing data uses cards and rings; dense tables are reserved for the coach console where scanning many rows is the job.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>Point 1 Fitness Studio — design direction · final</footer>
